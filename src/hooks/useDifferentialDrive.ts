@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useKeyboard } from './useKeyboard'
 import { useDriveStore } from '@/store/useDriveStore'
+import { FLOOR_HALF } from '@/components/scene/Floor'
 
 const TRAIL_DIST_SQ = 0.05 * 0.05  // 5 cm squared
 const TRAIL_INTERVAL = 0.08         // seconds between push checks
@@ -59,6 +60,24 @@ export function useDifferentialDrive() {
     const { theta } = poseRef.current
     poseRef.current.x += v * Math.cos(theta) * dt
     poseRef.current.z -= v * Math.sin(theta) * dt
+
+    // ── Boundary clamping ──────────────────────────────────────────
+    // FLOOR_HALF is exported from Floor.tsx (= planeGeometry / 2).
+    // Single source of truth — if floor size changes, boundary follows.
+    // Velocity is NOT killed so the robot can still rotate & move
+    // freely in the perpendicular axis after hitting a wall.
+    const BOUNDARY = FLOOR_HALF
+    const rawX = poseRef.current.x
+    const rawZ = poseRef.current.z
+    const clampedX = THREE.MathUtils.clamp(rawX, -BOUNDARY, BOUNDARY)
+    const clampedZ = THREE.MathUtils.clamp(rawZ, -BOUNDARY, BOUNDARY)
+
+    const isOOB = rawX !== clampedX || rawZ !== clampedZ
+    poseRef.current.x = clampedX
+    poseRef.current.z = clampedZ
+
+    useDriveStore.getState().setOutOfBounds(isOOB)
+    // ──────────────────────────────────────────────────────────────
 
     const { x, z } = poseRef.current
 

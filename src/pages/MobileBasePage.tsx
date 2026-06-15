@@ -8,7 +8,7 @@ import {
   ContactShadows,
 } from "@react-three/drei";
 import { useControls, button } from "leva";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 
 import { Lights } from "@/components/scene/Lights";
@@ -237,6 +237,67 @@ export default function MobileBasePage() {
           <span className="text-brand-accent text-xs font-mono">W A S D</span>
         </div>
       </div>
+      {/* Out-of-bounds warning banner */}
+      <OutOfBoundsWarning />
+
     </motion.div>
+  );
+}
+
+function OutOfBoundsWarning() {
+  const outOfBounds = useDriveStore((s) => s.outOfBounds);
+  return (
+    <AnimatePresence>
+      {outOfBounds && (
+        <motion.div
+          key="oob-warning"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.25, ease: "easeOut" }}
+          className="absolute top-5 left-1/2 -translate-x-1/2 pointer-events-none z-50"
+        >
+          <div
+            style={{
+              background: "rgba(255,60,60,0.12)",
+              border: "1px solid rgba(255,80,80,0.55)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              borderRadius: "12px",
+              padding: "10px 22px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              boxShadow: "0 0 32px rgba(255,60,60,0.22), 0 4px 24px rgba(0,0,0,0.5)",
+            }}
+          >
+            {/* Blinking warning dot */}
+            <span
+              style={{
+                display: "inline-block",
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                background: "#ff4444",
+                boxShadow: "0 0 10px #ff4444",
+                animation: "pulse 1s ease-in-out infinite",
+              }}
+            />
+            <span
+              style={{
+                color: "#ff8080",
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
+              ⚠ Boundary reached — steer back inside the zone
+            </span>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

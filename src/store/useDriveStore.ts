@@ -12,6 +12,7 @@ interface DriveState {
   config: DriveConfig;
   trail: TrajectoryPoint[];
   maxTrailLength: number;
+  outOfBounds: boolean;
 
   setPose: (pose: RobotPose) => void;
   setVelocity: (vel: RobotVelocity) => void;
@@ -19,6 +20,7 @@ interface DriveState {
   pushTrailPoint: (pt: TrajectoryPoint) => void;
   clearTrail: () => void;
   setMaxTrailLength: (n: number) => void;
+  setOutOfBounds: (v: boolean) => void;
 }
 
 export const useDriveStore = create<DriveState>((set, get) => ({
@@ -32,6 +34,7 @@ export const useDriveStore = create<DriveState>((set, get) => ({
   },
   trail: [],
   maxTrailLength: 600,
+  outOfBounds: false,
 
   setPose: (pose) => set({ pose }),
   setVelocity: (velocity) => set({ velocity }),
@@ -44,4 +47,5 @@ export const useDriveStore = create<DriveState>((set, get) => ({
     }),
   clearTrail: () => set({ trail: [] }),
   setMaxTrailLength: (n) => set({ maxTrailLength: n }),
+  setOutOfBounds: (v) => set({ outOfBounds: v }),
 }));

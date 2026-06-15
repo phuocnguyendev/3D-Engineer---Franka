@@ -2,6 +2,9 @@ import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
+/** Half-size of the floor plane – used by boundary clamping too */
+export const FLOOR_HALF = 70   // planeGeometry args=[140,140] → ±70
+
 function makeFloorTexture(maxAnisotropy: number): THREE.CanvasTexture {
   const size = 1024
   const canvas = document.createElement('canvas')
@@ -45,6 +48,25 @@ function makeFloorTexture(maxAnisotropy: number): THREE.CanvasTexture {
   return tex
 }
 
+/** Glowing border drawn exactly at the floor edge (±FLOOR_HALF) */
+function BoundaryLine() {
+  const H = FLOOR_HALF
+  const points = [
+    new THREE.Vector3(-H, 0.01, -H),
+    new THREE.Vector3( H, 0.01, -H),
+    new THREE.Vector3( H, 0.01,  H),
+    new THREE.Vector3(-H, 0.01,  H),
+    new THREE.Vector3(-H, 0.01, -H),  // close the loop
+  ]
+  const geometry = new THREE.BufferGeometry().setFromPoints(points)
+  return (
+    <line geometry={geometry}>
+      {/* @ts-ignore */}
+      <lineBasicMaterial color="#ff4444" transparent opacity={0.55} />
+    </line>
+  )
+}
+
 export function Floor() {
   const { gl } = useThree()
 
@@ -55,15 +77,18 @@ export function Floor() {
   useEffect(() => () => floorTex.dispose(), [floorTex])
 
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-      <planeGeometry args={[140, 140]} />
-      <meshStandardMaterial
-        map={floorTex}
-        color="#d8e8f0"
-        roughness={0.88}
-        metalness={0.06}
-        envMapIntensity={0.25}
-      />
-    </mesh>
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[FLOOR_HALF * 2, FLOOR_HALF * 2]} />
+        <meshStandardMaterial
+          map={floorTex}
+          color="#d8e8f0"
+          roughness={0.88}
+          metalness={0.06}
+          envMapIntensity={0.25}
+        />
+      </mesh>
+      <BoundaryLine />
+    </>
   )
 }
